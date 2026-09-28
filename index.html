@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E8391A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ACPicchia">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<title>AC Picchia — Cori Ufficiali</title>
+<style>
+  :root {
+    --red: #E8391A;
+    --red-light: #ff6b4a;
+    --bg: #FFF5F3;
+    --surf: #FFFFFF;
+    --muted: #999;
+    --text: #1a1a1a;
+    --border: #f0e8e6;
+    --radius: 16px;
+    --shadow: 0 2px 12px rgba(232,57,26,.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overscroll-behavior: none;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--red);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: calc(env(safe-area-inset-top) + 14px) 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .logo-wrap {
+    width: 44px; height: 44px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .logo-wrap img { width: 38px; height: 38px; object-fit: contain; }
+  .header-text h1 { font-size: 1.15rem; font-weight: 900; letter-spacing: -.3px; }
+  .header-text p { font-size: .75rem; opacity: .85; font-weight: 600; }
+
+  /* ── MAIN ── */
+  main { padding: 20px 16px calc(env(safe-area-inset-bottom) + 24px); }
+
+  section { margin-bottom: 28px; }
+  section h2 {
+    font-size: .7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* ── GRIDS ── */
+  .grid-team   { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .grid-player { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .grid-staff  { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+  /* ── CARD BASE ── */
+  .card {
+    background: var(--surf);
+    border-radius: var(--radius);
+    border: 2px solid var(--border);
+    padding: 14px 10px 12px;
+    display: flex; flex-direction: column; align-items: center;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+    user-select: none;
+    position: relative;
+  }
+  .card:active { transform: scale(.96); }
+
+  /* con coro: bordo arancio + ombra */
+  .card.has {
+    border-color: var(--red);
+    box-shadow: var(--shadow);
+  }
+
+  /* senza coro: grigio */
+  .card:not(.has) { opacity: .7; }
+  .card:not(.has) .av { background: #d8d8d8 !important; }
+
+  /* ── AVATAR ── */
+  .av {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; font-weight: 800; color: #fff;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .av img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+
+  /* avatar grande nelle card squadra */
+  .card-team .av { width: 70px; height: 70px; font-size: 1.5rem; }
+
+  /* ── NUMERO MAGLIA ── */
+  .num {
+    font-size: .65rem; font-weight: 900;
+    color: var(--red);
+    letter-spacing: .5px;
+    margin-bottom: 2px;
+  }
+
+  /* ── NOME ── */
+  .name {
+    font-size: .72rem; font-weight: 700;
+    text-align: center;
+    line-height: 1.2;
+    color: var(--text);
+  }
+
+  /* ── BADGE "in arrivo" ── */
+  .badge-soon {
+    margin-top: 6px;
+    font-size: .6rem; font-weight: 700;
+    color: var(--muted);
+    letter-spacing: .3px;
+  }
+
+  /* ── OVERLAY ── */
+  #overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 100;
+    backdrop-filter: blur(2px);
+  }
+  #overlay.open { display: block; }
+
+  /* ── BOTTOM SHEET ── */
+  #sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surf);
+    border-radius: 22px 22px 0 0;
+    z-index: 101;
+    max-height: 88dvh;
+    display: flex; flex-direction: column;
+    transform: translateY(100%);
+    transition: transform .35s cubic-bezier(.32,1,.32,1);
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  #sheet.open { transform: translateY(0); }
+
+  /* drag handle */
+  .drag { width: 40px; height: 4px; background: #ddd; border-radius: 2px; margin: 12px auto 0; flex-shrink: 0; }
+
+  /* sheet header */
+  .sh-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px 10px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sh-av { width: 52px; height: 52px; flex-shrink: 0; }
+  .sh-av .av { width: 52px; height: 52px; margin: 0; font-size: 1.1rem; }
+  .sh-title { flex: 1; }
+  .sh-title .sh-num { font-size: .7rem; font-weight: 900; color: var(--red); }
+  .sh-title h3 { font-size: 1rem; font-weight: 800; line-height: 1.2; }
+  .sh-title .sh-role { font-size: .75rem; color: var(--muted); font-weight: 600; }
+  .btn-close {
+    width: 32px; height: 32px;
+    border: none; background: var(--bg);
+    border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  /* sheet body */
+  .sh-body {
+    overflow-y: auto;
+    flex: 1;
+    padding: 0 20px 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── TABS (più cori) ── */
+  .tabs {
+    display: flex; gap: 8px;
+    padding: 14px 0 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    font-size: .75rem; font-weight: 700;
+    cursor: pointer;
+    transition: all .15s;
+    background: transparent;
+    color: var(--text);
+  }
+  .tab.active {
+    background: var(--red);
+    border-color: var(--red);
+    color: #fff;
+  }
+
+  /* ── CORO BODY ── */
+  .coro-title {
+    font-size: .8rem; font-weight: 800;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin: 14px 0 10px;
+  }
+
+  .lyrics {
+    font-size: .9rem; font-weight: 600;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    color: var(--text);
+  }
+
+  /* ── AUDIO PLAYER ── */
+  .player {
+    margin-top: 16px;
+    background: var(--bg);
+    border-radius: 14px;
+    padding: 14px;
+    border: 1.5px solid var(--border);
+  }
+  .play-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--red);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.1rem;
+    flex-shrink: 0;
+    transition: background .15s;
+  }
+  .play-btn:active { background: var(--red-light); }
+  .player-row { display: flex; align-items: center; gap: 12px; }
+  .prog-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .prog {
+    width: 100%; height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+  }
+  .prog-fill {
+    height: 100%; background: var(--red);
+    border-radius: 2px;
+    width: 0%; transition: width .1s linear;
+    pointer-events: none;
+  }
+  .time-row { display: flex; justify-content: space-between; }
+  .time-row span { font-size: .65rem; font-weight: 700; color: var(--muted); }
+
+  /* nessun coro */
+  .no-coro {
+    text-align: center;
+    padding: 32px 0;
+    color: var(--muted);
+    font-weight: 700;
+    font-size: .9rem;
+  }
+  .no-coro .ico { font-size: 2rem; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <img src="logo.png" alt="AC Picchia">
+  </div>
+  <div class="header-text">
+    <h1>AC Picchia</h1>
+    <p>🎵 Cori Ufficiali</p>
+  </div>
+</header>
+
+<main>
+  <section>
+    <h2>🏆 Cori di Squadra</h2>
+    <div class="grid-team" id="grid-team"></div>
+  </section>
+
+  <section>
+    <h2>⚽ Giocatrici</h2>
+    <div class="grid-player" id="grid-player"></div>
+  </section>
+
+  <section>
+    <h2>👥 Staff</h2>
+    <div class="grid-staff" id="grid-staff"></div>
+  </section>
+</main>
+
+<!-- Overlay + Bottom Sheet -->
+<div id="overlay" onclick="closeSheet()"></div>
+<div id="sheet" role="dialog" aria-modal="true">
+  <div class="drag"></div>
+  <div class="sh-head" id="sh-head"></div>
+  <div class="sh-body" id="sh-body"></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+'use strict';
+
+// ── PALETTE COLORI AVATAR ────────────────────────────────────
+const PALETTE = [
+  '#E8391A','#D4522A','#C0623B','#A8724C',
+  '#7C6E5A','#5A7C6E','#3A8C7A','#2A7C8C',
+  '#3A6CA8','#5A4CA8','#7C3AA8','#A83A8C'
+];
+
+function hue(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0xffffffff;
+  return PALETTE[Math.abs(h) % PALETTE.length];
+}
+
+function inits(s) {
+  const parts = s.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function avEl(photo, name, cls = '') {
+  if (photo) {
+    const wrap = document.createElement('div');
+    wrap.className = `av ${cls}`;
+    const img = document.createElement('img');
+    img.src = photo; img.alt = name;
+    img.onerror = () => { wrap.removeChild(img); wrap.textContent = inits(name); };
+    wrap.appendChild(img);
+    return wrap;
+  }
+  const div = document.createElement('div');
+  div.className = `av ${cls}`;
+  div.style.background = hue(name);
+  div.textContent = inits(name);
+  return div;
+}
+
+// ── RENDER GRIGLIA ───────────────────────────────────────────
+function renderTeam() {
+  const g = document.getElementById('grid-team');
+  APP_DATA.team.forEach((t, i) => {
+    const hasC = t.lyrics;
+    const card = document.createElement('div');
+    card.className = `card card-team${hasC ? ' has' : ''}`;
+    card.onclick = () => openTeam(i);
+
+    const av = avEl(t.photo, t.title);
+    card.appendChild(av);
+
+    const nm = document.createElement('div');
+    nm.className = 'name';
+    nm.textContent = t.title;
+    card.appendChild(nm);
+
+    if (!hasC) {
+      const b = document.createElement('div');
+      b.className = 'badge-soon';
+      b.textContent = '⏳ in arrivo';
+      card.appendChild(b);
+    }
+
+    g.appendChild(card);
+  });
+}
+
+function renderPlayers() {
+  const g = document.getElementById('grid-player');
+  const sorted = [...APP_DATA.players].sort((a, b) => a.number - b.number);
+  sorted.forEach(p => {
+    const hasC = p.cori.length > 0;
+    const card = document.createElement('div');
+    card.className = `card${hasC ? ' has' : ''}`;
+    card.onclick = () => openPlayer(p.id);
+
+    card.appendChild(avEl(p.photo, p.name));
+
+    const num = document.createElement('div');
+    num.className = 'num';
+    num.textContent = `#${p.number}`;
+    card.appendChild(num);
+
+    const nm = document.createElement('div');
+    nm.className = 'name';
+    nm.textContent = p.name.split(' ')[0];
+    card.appendChild(nm);
+
+    if (!hasC) {
+      const b = document.createElement('div');
+      b.className = 'badge-soon';
+      b.textContent = '⏳ in arrivo';
+      card.appendChild(b);
+    }
+
+    g.appendChild(card);
+  });
+}
+
+function renderStaff() {
+  const g = document.getElementById('grid-staff');
+  APP_DATA.staff.forEach(s => {
+    const hasC = s.cori.length > 0;
+    const card = document.createElement('div');
+    card.className = `card${hasC ? ' has' : ''}`;
+    card.onclick = () => openStaff(s.id);
+
+    card.appendChild(avEl(s.photo, s.name));
+
+    const nm = document.createElement('div');
+    nm.className = 'name';
+    nm.textContent = s.name;
+    card.appendChild(nm);
+
+    const rl = document.createElement('div');
+    rl.className = 'badge-soon';
+    rl.style.color = '#777';
+    rl.textContent = s.role;
+    card.appendChild(rl);
+
+    if (!hasC) {
+      const b = document.createElement('div');
+      b.className = 'badge-soon';
+      b.textContent = '⏳ in arrivo';
+      card.appendChild(b);
+    }
+
+    g.appendChild(card);
+  });
+}
+
+// ── BOTTOM SHEET ─────────────────────────────────────────────
+let currentCoroIdx = 0;
+let currentCori = [];
+
+function openSheet(headerHTML, bodyFn) {
+  stopAudio();
+  document.getElementById('sh-head').innerHTML = headerHTML;
+  document.getElementById('sh-body').innerHTML = '';
+  bodyFn(document.getElementById('sh-body'));
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('sheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSheet() {
+  stopAudio();
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('sheet').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function makeHead(avNode, num, title, subtitle) {
+  const head = document.getElementById('sh-head');
+  head.innerHTML = '';
+  const avWrap = document.createElement('div'); avWrap.className = 'sh-av';
+  avWrap.appendChild(avNode);
+  head.appendChild(avWrap);
+  const ti = document.createElement('div'); ti.className = 'sh-title';
+  if (num !== null) { const n = document.createElement('div'); n.className = 'sh-num'; n.textContent = `#${num}`; ti.appendChild(n); }
+  const h3 = document.createElement('h3'); h3.textContent = title; ti.appendChild(h3);
+  if (subtitle) { const r = document.createElement('div'); r.className = 'sh-role'; r.textContent = subtitle; ti.appendChild(r); }
+  head.appendChild(ti);
+  const btn = document.createElement('button'); btn.className = 'btn-close'; btn.innerHTML = '✕'; btn.onclick = closeSheet;
+  head.appendChild(btn);
+}
+
+function openTeam(i) {
+  const t = APP_DATA.team[i];
+  currentCori = t.lyrics ? [{ title: t.title, audio: t.audio, lyrics: t.lyrics }] : [];
+  currentCoroIdx = 0;
+  openSheet('', body => {
+    makeHead(avEl(t.photo, t.title, ''), null, t.title, '');
+    renderTabs(body);
+    if (currentCori.length) renderCoro(body, currentCori[0]);
+    else renderNoCoro(body);
+  });
+}
+
+function openPlayer(id) {
+  const p = APP_DATA.players.find(x => x.id === id);
+  currentCori = p.cori;
+  currentCoroIdx = 0;
+  openSheet('', body => {
+    makeHead(avEl(p.photo, p.name, ''), p.number, p.name, null);
+    renderTabs(body);
+    if (currentCori.length) renderCoro(body, currentCori[0]);
+    else renderNoCoro(body);
+  });
+}
+
+function openStaff(id) {
+  const s = APP_DATA.staff.find(x => x.id === id);
+  currentCori = s.cori;
+  currentCoroIdx = 0;
+  openSheet('', body => {
+    makeHead(avEl(s.photo, s.name, ''), null, s.name, s.role);
+    renderTabs(body);
+    if (currentCori.length) renderCoro(body, currentCori[0]);
+    else renderNoCoro(body);
+  });
+}
+
+function renderTabs(body) {
+  if (currentCori.length <= 1) return;
+  const tabs = document.createElement('div');
+  tabs.className = 'tabs';
+  currentCori.forEach((c, i) => {
+    const t = document.createElement('button');
+    t.className = `tab${i === 0 ? ' active' : ''}`;
+    t.textContent = c.title;
+    t.onclick = () => switchCoro(i);
+    tabs.appendChild(t);
+  });
+  body.appendChild(tabs);
+}
+
+function switchCoro(i) {
+  stopAudio();
+  currentCoroIdx = i;
+  document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('active', j === i));
+  const body = document.getElementById('sh-body');
+  // rimuovi vecchio coro (tutto dopo i tabs)
+  const tabs = body.querySelector('.tabs');
+  while (body.lastChild && body.lastChild !== tabs) body.removeChild(body.lastChild);
+  renderCoro(body, currentCori[i]);
+}
+
+function renderCoro(body, c) {
+  const title = document.createElement('div');
+  title.className = 'coro-title';
+  title.textContent = c.title;
+  body.appendChild(title);
+
+  const lyrics = document.createElement('pre');
+  lyrics.className = 'lyrics';
+  lyrics.textContent = c.lyrics;
+  body.appendChild(lyrics);
+
+  if (c.audio) {
+    body.appendChild(buildPlayer(c.audio));
+  }
+}
+
+function renderNoCoro(body) {
+  body.innerHTML += `<div class="no-coro"><div class="ico">🎵</div>Il coro è in arrivo!<br><small style="font-weight:600;opacity:.7">Torna presto…</small></div>`;
+}
+
+// ── AUDIO PLAYER ─────────────────────────────────────────────
+let _audio = null;
+let _progFill = null;
+let _curTime = null;
+let _totTime = null;
+let _playBtn = null;
+let _raf = null;
+
+function fmt(s) {
+  if (!isFinite(s)) return '0:00';
+  const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+function buildPlayer(src) {
+  const wrap = document.createElement('div');
+  wrap.className = 'player';
+
+  const row = document.createElement('div');
+  row.className = 'player-row';
+
+  const btn = document.createElement('button');
+  btn.className = 'play-btn';
+  btn.innerHTML = '▶';
+  _playBtn = btn;
+
+  const progWrap = document.createElement('div');
+  progWrap.className = 'prog-wrap';
+
+  const prog = document.createElement('div');
+  prog.className = 'prog';
+
+  const fill = document.createElement('div');
+  fill.className = 'prog-fill';
+  _progFill = fill;
+  prog.appendChild(fill);
+  prog.onclick = (e) => seekAudio(e, prog);
+
+  const timeRow = document.createElement('div');
+  timeRow.className = 'time-row';
+  const ct = document.createElement('span'); ct.textContent = '0:00'; _curTime = ct;
+  const tt = document.createElement('span'); tt.textContent = '0:00'; _totTime = tt;
+  timeRow.appendChild(ct); timeRow.appendChild(tt);
+
+  progWrap.appendChild(prog);
+  progWrap.appendChild(timeRow);
+
+  row.appendChild(btn);
+  row.appendChild(progWrap);
+  wrap.appendChild(row);
+
+  btn.onclick = () => togglePlay(src);
+
+  return wrap;
+}
+
+function togglePlay(src) {
+  if (!_audio || _audio.src !== new URL(src, location.href).href) {
+    if (_audio) { _audio.pause(); _audio = null; }
+    _audio = new Audio(src);
+    _audio.addEventListener('loadedmetadata', () => { if (_totTime) _totTime.textContent = fmt(_audio.duration); });
+    _audio.addEventListener('ended', () => {
+      if (_playBtn) _playBtn.innerHTML = '▶';
+      cancelAnimationFrame(_raf);
+    });
+    _audio.play();
+    if (_playBtn) _playBtn.innerHTML = '⏸';
+    tick();
+  } else if (_audio.paused) {
+    _audio.play();
+    if (_playBtn) _playBtn.innerHTML = '⏸';
+    tick();
+  } else {
+    _audio.pause();
+    if (_playBtn) _playBtn.innerHTML = '▶';
+    cancelAnimationFrame(_raf);
+  }
+}
+
+function tick() {
+  if (!_audio) return;
+  if (_progFill && _audio.duration) _progFill.style.width = (_audio.currentTime / _audio.duration * 100) + '%';
+  if (_curTime) _curTime.textContent = fmt(_audio.currentTime);
+  _raf = requestAnimationFrame(tick);
+}
+
+function seekAudio(e, prog) {
+  if (!_audio) return;
+  const rect = prog.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  _audio.currentTime = pct * _audio.duration;
+}
+
+function stopAudio() {
+  if (_audio) { _audio.pause(); _audio = null; }
+  cancelAnimationFrame(_raf);
+  _progFill = null; _curTime = null; _totTime = null; _playBtn = null;
+}
+
+// ── SWIPE TO CLOSE ───────────────────────────────────────────
+let touchY = 0;
+const sheet = document.getElementById('sheet');
+sheet.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, { passive: true });
+sheet.addEventListener('touchend', e => {
+  if (e.changedTouches[0].clientY - touchY > 80) closeSheet();
+}, { passive: true });
+
+// ── KEYBOARD ────────────────────────────────────────────────
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+// ── SERVICE WORKER ──────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ── INIT ────────────────────────────────────────────────────
+renderTeam();
+renderPlayers();
+renderStaff();
+</script>
+</body>
+</html>
